@@ -33,3 +33,5 @@ class SublayerConnection(nn.Module):
         "Apply residual connection to any sublayer with the same size."
         """add + norm"""
         return x + self.dropout(sublayer(self.norm(x)))
+
+
