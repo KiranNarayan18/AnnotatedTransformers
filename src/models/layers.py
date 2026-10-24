@@ -18,7 +18,6 @@ class LayerNorm(nn.Module):
         return (((x-mean) / (std + self.eps)) * self.gemma) + self.beta
 
 
-
 class SublayerConnection(nn.Module):
     """
     A residual connection followed by a layer norm.
@@ -35,3 +34,18 @@ class SublayerConnection(nn.Module):
         return x + self.dropout(sublayer(self.norm(x)))
 
 
+class PositionwiseFeedForward(nn.Module):
+    def __init__(self, d_model, d_ff, dropout=0.1):
+        super().__init__()
+        self.w_1 = nn.Linear(d_model, d_ff)  # position-wise feed-forward layer 1
+        self.w_2 = nn.Linear(d_ff, d_model)  # position-wise feed-forward layer 2
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, x):
+        
+        # x = self.w_1(x)
+        # x = x.relu()
+        # x = self.dropout(x) network with ReLU activation and dropout
+        # x = self.w_2(x)
+
+        return self.w_2(self.dropout(self.w_1(x).relu()))
