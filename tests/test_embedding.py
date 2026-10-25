@@ -30,12 +30,6 @@ def example_positional():
   return chart
 #   chart.save("positional_encoding.html")
 
-RUN_EXAMPLES = True
-def show_example(fn, args=[]):
-  if __name__=="__main__" and RUN_EXAMPLES:
-    return fn(*args)
-
-show_example(example_positional)
 
 
 

@@ -4,11 +4,12 @@ from torch import nn
 # h (heads) = Number of parallel attention heads inside each multi-head attention module (original paper: 8).
 
 from .utils import clones
-from .layers import LayerNorm
+from .layers import LayerNorm, SublayerConnection
 
-class Decoder(nn.Moule):
+class Decoder(nn.Module):
     """Generic N layer decoder with masking"""
     def __init__(self, layer, N):
+        super().__init__()
         self.layers = clones(layer, N)
         self.norm = LayerNorm(layer.size)
 
@@ -23,7 +24,7 @@ class DecoderLayer(nn.Module):
     """Decoder is made of self attn, src attn and feed forward """
 
     def __init__(self, size, self_attn, src_attn, feed_forward, dropout):
-        super.__init__()
+        super().__init__()
         self.size = size
         self.self_attn = self_attn
         self.src_attn = src_attn

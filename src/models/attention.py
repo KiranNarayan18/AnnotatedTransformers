@@ -1,3 +1,5 @@
+import math
+
 import torch
 from torch import nn
 
@@ -15,7 +17,20 @@ def subsequent_mask(size):
     return subsequent_mask
 
 
-class MultiHeadAttention(nn.Module):
+def attention(query, key, value, mask=None, dropout=None):
+  """"Compute scaled dot product attention"""
+  d_k = query.size(-1)
+  scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(d_k)
+  if mask is not None:
+    scores = scores.masked_fill(mask==0, -1e9)
+
+  p_attn = scores.softmax(dim=-1)
+  if dropout is not None:
+    p_attn = dropout(p_attn)
+
+  return torch.matmul(p_attn, value), p_attn
+
+class MultiHeadedAttention(nn.Module):
     """ 
     The main idea is that Multi-Head Attention splits the embedding into multiple smaller attention heads,
     runs attention independently in each head, and then combines their results.
