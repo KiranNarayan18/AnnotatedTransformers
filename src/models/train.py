@@ -1,3 +1,6 @@
+import time
+from models.config import TrainState
+
 class Batch:
     def __init__(self, src, trg=None, pad=0):
         self.src = src
