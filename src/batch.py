@@ -1,8 +1,11 @@
 import torch
+from torch.nn.functional import log_softmax, pad
+
 
 def collate_batch(batch, src_pipeline, tgt_pipeline, src_vocab, tgt_vocab, device, max_padding=128, pad_id=2):
     bs_id = torch.tensor([0], device=device)
     eos_id = torch.tensor([1], device=device)
+    src_list, tgt_list = [], []
 
     for (_src, _tgt) in batch:
 

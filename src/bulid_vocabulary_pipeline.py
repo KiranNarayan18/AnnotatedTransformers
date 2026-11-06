@@ -36,12 +36,13 @@ class Vocab:
 
         self.stoi = stoi
         self.itos = itos
+        self.default_idx = default_idx
 
     def __getitem__(self, token):
         return self.stoi.get(token, self.default_idx)
 
     def __call__(self, token):
-        return [self.stoi.get(t, self.default_idx) for t in tokenize]
+        return [self.stoi.get(t, self.default_idx) for t in token]
 
     def __len__(self):
         return len(self.itos)
