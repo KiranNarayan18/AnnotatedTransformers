@@ -1,8 +1,18 @@
 import time
+import torch
 from models.config import TrainState
 
+
+def subsequent_mask(size):
+    """Mask out subsequent positions for decoder inputs. This is used to prevent the decoder from attending to future tokens in the target sequence during training."""
+
+    attn_shape = (1, size, size)
+    subsequent_mask = torch.triu(torch.ones(attn_shape), diagonal=1).type(torch.bool)
+
+    return subsequent_mask
+
 class Batch:
-    def __init__(self, src, trg=None, pad=0):
+    def __init__(self, src, tgt=None, pad=0):
         self.src = src
         self.src_mask = (src != pad).unsqueeze(-2)
         ## this would return a boolean matrix of size src tensor, True while the tensor value is != pad val False when value == pad
@@ -42,10 +52,10 @@ def run_epoch(data_iter, model, loss_compute, optimizer, scheduler, mode='train'
             batch.src, batch.tgt, batch.src_mask, batch.tgt_mask
         )
 
-        loss = loss_compute(y_pred, batch.tgt_y, batch.ntokens)
+        loss, loss_node = loss_compute(y_pred, batch.tgt_y, batch.ntokens)
 
         if mode == 'train' or mode == 'train+log':
-            loss.backward()
+            loss_node.backward()
             train_state.step += 1
             train_state.samples += batch.src.shape[0]
             train_state.tokens += batch.ntokens
