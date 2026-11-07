@@ -4,12 +4,13 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.optim.lr_scheduler import LambdaLR
 
 
-from models.model import make_model
-from models.regularization import LabelSmoothing
-from data_loaders import create_dataloaders
-from models.config import TrainState, learning_rate
-from models.train import run_epoch, Batch
-from models.loss import SimpleLossCompute
+from ..models.model import make_model
+from .regularization import LabelSmoothing
+from ..data.loaders import create_dataloaders
+from ..models.config import TrainState, learning_rate
+from .engine import run_epoch
+from ..data.batching import Batch
+from .losses import SimpleLossCompute
 
 
 
