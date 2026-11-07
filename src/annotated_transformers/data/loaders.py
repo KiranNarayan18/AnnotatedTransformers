@@ -8,12 +8,12 @@ from torch.utils.data import DataLoader, Dataset
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 
-from bulid_vocabulary_pipeline import tokenize
-from batch import collate_batch
-from models.config import TrainState
-from models.loss import SimpleLossCompute
-from models.model import make_model
-from models.train import run_epoch
+from .vocabulary import tokenize
+from .batching import collate_batch
+from ..models.config import TrainState
+from ..training.losses import SimpleLossCompute
+from ..models.model import make_model
+from ..training.engine import run_epoch
 
 
 

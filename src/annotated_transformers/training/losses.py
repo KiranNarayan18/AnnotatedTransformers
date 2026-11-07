@@ -1,6 +1,6 @@
 import torch
 
-from models.attention import subsequent_mask
+from ..models.attention import subsequent_mask
 
 
 class SimpleLossCompute:

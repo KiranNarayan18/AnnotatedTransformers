@@ -2,8 +2,8 @@ import time
 
 import torch
 
-from models.config import TrainState
-from models.attention import subsequent_mask
+from ..models.config import TrainState
+from ..models.attention import subsequent_mask
 
 
 class Batch:

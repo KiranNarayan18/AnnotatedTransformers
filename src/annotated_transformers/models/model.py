@@ -3,11 +3,11 @@ import copy
 from torch import nn
 from torch.nn.functional import log_softmax, pad
 
-from models.attention import MultiHeadedAttention
-from models.layers import PositionwiseFeedForward
-from models.encoder import Encoder, EncoderLayer
-from models.decoder import Decoder, DecoderLayer
-from models.embeddings import Embeddings, PositionalEncoding
+from .attention import MultiHeadedAttention
+from .layers import PositionwiseFeedForward
+from .encoder import Encoder, EncoderLayer
+from .decoder import Decoder, DecoderLayer
+from .embeddings import Embeddings, PositionalEncoding
 
 
 class Generator(nn.Module):
