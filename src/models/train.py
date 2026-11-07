@@ -14,8 +14,7 @@ class Batch:
         self.src_mask = (src != pad).unsqueeze(-2)
 
         if tgt is not None:
-            # Teacher forcing: decoder receives all but the final token;
-            # labels are the same sequence shifted one position to the left.
+            # Teacher forcing: decoder input and labels are shifted by one token.
             self.tgt = tgt[:, :-1]
             self.tgt_y = tgt[:, 1:]
             self.tgt_mask = self.make_std_mask(self.tgt, pad)
@@ -50,6 +49,7 @@ def run_epoch(
     total_tokens = 0
     total_loss = 0.0
     tokens_since_log = 0
+    pending_accumulation = 0
 
     if is_training:
         optimizer.zero_grad(set_to_none=True)
@@ -61,16 +61,17 @@ def run_epoch(
 
             if is_training:
                 (loss_node / accum_iter).backward()
+                pending_accumulation += 1
                 train_state.step += 1
                 train_state.samples += batch.src.size(0)
                 train_state.tokens += int(batch.ntokens)
 
-                should_step = (i + 1) % accum_iter == 0
-                if should_step:
+                if pending_accumulation == accum_iter:
                     optimizer.step()
                     optimizer.zero_grad(set_to_none=True)
                     scheduler.step()
                     train_state.accum_step += 1
+                    pending_accumulation = 0
 
         batch_tokens = int(batch.ntokens)
         total_loss += float(loss)
@@ -91,8 +92,12 @@ def run_epoch(
             start = time.time()
             tokens_since_log = 0
 
-    # Apply a final optimizer update when the epoch ends mid-accumulation.
-    if is_training and len(data_iter) % accum_iter:
+    # Flush a final, incomplete accumulation group (also works with generators).
+    if is_training and pending_accumulation:
+        scale = accum_iter / pending_accumulation
+        for parameter in model.parameters():
+            if parameter.grad is not None:
+                parameter.grad.mul_(scale)
         optimizer.step()
         optimizer.zero_grad(set_to_none=True)
         scheduler.step()
