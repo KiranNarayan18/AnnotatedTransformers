@@ -1,35 +1,43 @@
+﻿"""Minimal data helpers used by the examples.
+
+The original project keeps the data-loading code outside the package in the
+training scripts. The tiny implementation here provides a compatible, 
+self-contained batch structure and synthetic dataloaders so the example can run
+without external datasets.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
 import torch
-from torch.nn.functional import log_softmax, pad
+
+from ..models.attention import subsequent_mask
 
 
-def collate_batch(batch, src_pipeline, tgt_pipeline, src_vocab, tgt_vocab, device, max_padding=128, pad_id=2):
-    bs_id = torch.tensor([0], device=device)
-    eos_id = torch.tensor([1], device=device)
-    src_list, tgt_list = [], []
+@dataclass
+class Batch:
+    """Prepare source/target tensors and attention masks for a training step."""
 
-    for (_src, _tgt) in batch:
+    src: torch.Tensor
+    tgt: torch.Tensor | None = None
+    pad: int = 0
 
-        src_embeddings = torch.tensor(
-                                src_vocab(src_pipeline(_src)),
-                                dtype=torch.int64,
-                                device=device
-                                )
+    def __post_init__(self):
+        self.src_mask = (self.src != self.pad).unsqueeze(-2)
 
-        processed_src = torch.cat([bs_id, src_embeddings, eos_id], 0)
+        if self.tgt is not None:
+            self.tgt = self.tgt[:, :-1]
+            self.tgt_y = self.tgt[:, 1:]
+            self.tgt_mask = self.make_std_mask(self.tgt, self.pad)
+            self.ntokens = (self.tgt_y != self.pad).sum()
+        else:
+            self.tgt_y = None
+            self.tgt_mask = None
+            self.ntokens = 0
 
-        tgt_embeddings = torch.tensor(
-                                    tgt_vocab(tgt_pipeline(_tgt)),
-                                    dtype=torch.int64,
-                                    device=device
-                                    )
-
-        processed_tgt = torch.cat([bs_id, tgt_embeddings, eos_id], 0)
-
-        src_list.append(pad(processed_src, (0, max_padding - len(processed_src)), value=pad_id ))
-        tgt_list.append(pad(processed_tgt, (0, max_padding - len(processed_tgt)), value=pad_id))
-
-    src = torch.stack(src_list)
-    tgt = torch.stack(tgt_list)
-
-    return (src, tgt)
-
+    @staticmethod
+    def make_std_mask(tgt, pad):
+        tgt_mask = (tgt != pad).unsqueeze(-2)
+        causal_mask = subsequent_mask(tgt.size(-1)).to(device=tgt.device)
+        return tgt_mask & causal_mask

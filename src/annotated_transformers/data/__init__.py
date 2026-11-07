@@ -1,1 +1,1 @@
-"""Dataset, vocabulary, and batching utilities."""
+﻿"""Package marker for synthetic data helpers."""

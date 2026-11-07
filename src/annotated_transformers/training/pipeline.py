@@ -1,16 +1,26 @@
 
 import torch
+import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.optim.lr_scheduler import LambdaLR
 
+try:
+    import GPUtil
+except ImportError:  # pragma: no cover - optional dependency for GPU monitoring.
+    GPUtil = None
 
 from ..models.model import make_model
 from .regularization import LabelSmoothing
-from ..data.loaders import create_dataloaders
 from ..models.config import TrainState, learning_rate
 from .engine import run_epoch
-from ..data.batching import Batch
 from .losses import SimpleLossCompute
+
+try:
+    from ..data.loaders import create_dataloaders
+    from ..data.batching import Batch
+except ImportError:  # pragma: no cover - optional training data package in toy examples.
+    create_dataloaders = None
+    Batch = None
 
 
 
@@ -33,11 +43,22 @@ class DummyScheduler:
 
 def train_worker(gpu, ngpus_per_node, vocab_src, vocab_tgt, spacy_de, spacy_en, config, is_distributed=False):
     cuda_available = torch.cuda.is_available()
-    device = torch.device(f"cuda:{gpu}" if cuda_available else "cpu")
-    print(f"Train worker process using device: {device}", flush=True)
-
+    device = torch.device("cpu")
     if cuda_available:
-        torch.cuda.set_device(gpu)
+        print('hello')
+        try:
+            torch.cuda.set_device(gpu)
+            device = torch.device(f"cuda:{gpu}")
+        except Exception:
+            cuda_available = False
+            device = torch.device("cpu")
+
+    print(f"Train worker process using device: {device}", flush=True)
+    
+    if Batch is None or create_dataloaders is None:
+        raise ImportError(
+            "Training data support is not available; install the data pipeline or use a packaged example."
+        )
 
     pad_idx = vocab_tgt['<blank>']
     d_model = 512
@@ -96,7 +117,7 @@ def train_worker(gpu, ngpus_per_node, vocab_src, vocab_tgt, spacy_de, spacy_en, 
             train_state=train_state,
         )
 
-        if cuda_available:
+        if cuda_available and GPUtil is not None:
             try:
                 GPUtil.showUtilization()
             except Exception:
