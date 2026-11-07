@@ -11,7 +11,9 @@ dependencies = ['ipykernel',
                 'altair',
                 'pandas',
                 'torch',
-                'torchvision'
+                'torchvision',
+                'spacy',
+                'datasets'
                 ]
 
 [build-system]
