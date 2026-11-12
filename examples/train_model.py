@@ -48,14 +48,16 @@ def load_trained_model(vocab_src, vocab_tgt, spacy_de, spacy_en):
     config = {
         "batch_size": 32,
         "distributed": False,
-        "num_epochs": 20,
+        "num_epochs": 50,
         "accum_iter": 10,
         "base_lr": 1.0,
         "max_padding": 72,
         "warmup": 4000,
         "file_prefix": "multi30k_model_",
+        "model_path": os.path.join(ROOT, "data", "checkpoints")
     }
     model_path = ROOT / "data" / "models" / "multi30k_model_final.pt"
+
     model_path.parent.mkdir(parents=True, exist_ok=True)
 
     model = make_model(len(vocab_src), len(vocab_tgt), N=6)
@@ -77,7 +79,7 @@ def main():
     spacy_de, spacy_en = load_tokenizers()
     vocab_src, vocab_tgt = load_vocab(spacy_de, spacy_en)
     model = load_trained_model(vocab_src, vocab_tgt, spacy_de, spacy_en)
-    print(model)
+
 
 
 if __name__ == "__main__":

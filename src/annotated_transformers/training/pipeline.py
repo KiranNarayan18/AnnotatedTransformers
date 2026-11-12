@@ -1,4 +1,4 @@
-
+import os
 import torch
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -124,7 +124,7 @@ def train_worker(gpu, ngpus_per_node, vocab_src, vocab_tgt, spacy_de, spacy_en, 
                 pass
         
         if is_main_process:
-            file_path = "%s%.2d.pt" % (config['file_prefix'], epoch)
+            file_path = os.path.join(config['model_path'], "%s%.2d.pt" % (config['file_prefix'], epoch))
             torch.save(module.state_dict(), file_path)
 
         if cuda_available:
@@ -145,7 +145,7 @@ def train_worker(gpu, ngpus_per_node, vocab_src, vocab_tgt, spacy_de, spacy_en, 
             torch.cuda.empty_cache()
 
     if is_main_process:
-        file_path = "%sfinal.pt" % config["file_prefix"]
+        file_path = os.path.join(config['model_path'], "%sfinal.pt" % config["file_prefix"])
         torch.save(module.state_dict(), file_path)
 
 
